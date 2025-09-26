@@ -20,7 +20,7 @@ class Food:
         self.parts = []
 
         # place holder for callback passed in from active_gotchi (handled in main.py)
-        self.onClick_callback = None  #NOTE: May need to make this a list of functions in the future to handle opening and closing of mouth interlaced with cookie biting animation 
+        self.onClick_callback = None  #NOTE: May need to make this a list of functions 
 
         # place holder for internal object instance of food subclass
         self.display_food = None
@@ -37,20 +37,30 @@ class Food:
     def _handle_onClick_food_animation(self, event):
         # initiates callback set from active_gotchi and handles displaying animation of cookie being eaten
         if self.onClick_callback:
-            self.onClick_callback()
+            #self.onClick_callback()
             
             # if parts list is empty, then object has not yet been drawn
             if not self.display_food.parts:
                 self.display_food._draw()
+                self.onClick_callback()
+                self.display_food._bite_animation()
+                self.onClick_callback()
             
             # on second click, take bite
             else:
+                self.onClick_callback()
                 self.display_food._bite_animation()
-                print("bite taken")
+
+                # static value, need to alter later as now I cannot recreate the cookie
+                self.display_food.canvas.delete("cookie_bitten")
+                self.onClick_callback()
 
         else:
             print("No callback from gotchi_clases has been set")
         
+
+        print("bite taken")
+
 
     def set_onClick_fun(self,onClick_callback):
         # attach externally passed function to the object's self.onClick, this will get called 

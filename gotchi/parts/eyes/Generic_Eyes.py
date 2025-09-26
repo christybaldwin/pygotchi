@@ -1,3 +1,5 @@
+from ...general_tags import *
+
 class Eyes():
     # Creates a pair of eyes.
     def __init__(self, canvas, tag, center_x, center_y, x_offset, y_offset, radius=10):
@@ -13,7 +15,7 @@ class Eyes():
             ly + radius, 
             fill='black', 
             outline='black',
-            tags = tag
+            tags = (tag,LEFT_EYE)
         )
         
         # Right eye
@@ -26,7 +28,7 @@ class Eyes():
             ry + radius, 
             fill='black', 
             outline='black',
-            tags = tag
+            tags = (tag,RIGHT_EYE)
         )
 
     def get_ids(self):

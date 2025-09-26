@@ -1,7 +1,9 @@
 from .life_stages.babies.Test_Baby import TestBabyFeatures
 from .life_stages.teens.Test_Teen import TestTeenFeatures
 from .life_stages.adults.Test_Adult import TestAdultFeatures
+from gotchi.general_tags import *
 import random
+from time import *
 
 # --- Base Class --- #
 class Gotchi:
@@ -11,14 +13,12 @@ class Gotchi:
         2) obtaining the root.canvas and dimensions
         3) holding parts[] list
     """
-    def __init__(self,canvas,food=None):
+    def __init__(self,canvas):
         self.canvas = canvas
-        self.parts = [] #init empty list
+        self.parts = [] # used to hold id's of all parts of gotchi, this will allow for location manipulation later
+        self.center_points = [] # used for holding the calculated starting points for each part of a gotchi to be used for location manipulation later
         self.tag = ""
-
-        # will store bite_animation from cookie
-        # self.food_function = None
-
+        
         # get canvas dimensions
         self.canvas_width = int(self.canvas.cget("width"))
         self.canvas_height = int(self.canvas.cget("height"))
@@ -31,23 +31,13 @@ class Gotchi:
         self.center_x = self.canvas_width /2
         self.center_y = self.canvas_height /2
 
-
-    # used by child classes to append 
-    def add_part(self,part_id):
-        self.parts.append(part_id)
     
-    # pass in the Cookie.draw & Cookie.bite_animation functions to add it to the gotchi canvas 
-    def eat_animation(self):
-        # if self.food_function:
-            # self.food_function()
-        print("clicked")
+    def _reset_center(self):
+        i = 0
+        for part in self.parts:
+            self.canvas.coords(part,*self.center_points[i])
+            i += 1
 
-    def open_mouth_animation(self):
-        self.mouth
-
-    def open_mouth_animation(self):
-
-    
     # used in main() function's game_loop() to disaplay gotchi movement 
     def move_animate(self):
         
@@ -83,51 +73,70 @@ class Gotchi:
     def add_happiness(self):
         print("clicked food, happiness increased")
 
-    def set_food_callback(self,callback):
-        self.food = callback
+    def _add_center_point(self,part):
+        return self.canvas.coords(part)
 
-# --- Baby --- #
-class Baby(Gotchi):
 
-    def __init__(self,canvas,food=None):
-        super().__init__(canvas,food) # create instance of Gotchi (aka parent class) as part of current class
-        self.body_size = 100
-        self.tag = "baby"
+# --- Life stage Subclass --- #
+class Life_Stage(Gotchi):
 
-        # static features class for now, will update this in future to be modular in accepting another type of class file to represent different variants of baby gotchi
-        features = TestBabyFeatures(self.canvas, self.center_x, self.center_y, self.body_size, self.tag)
-        for part in features.get_all_feature_ids():
-            self.add_part(part)
+    def __init__(self,canvas,type=""):
+        super().__init__(canvas) # create instance of Gotchi (aka parent class) as part of current class
+
+        if type == "baby":
+            self.body_size = 95
+            self.tag = "baby"
+
+            # static features class for now, will update this in future to be modular in accepting another type of class file to represent different variants of baby gotchi
+            self.features = TestBabyFeatures(self.canvas, self.center_x, self.center_y, self.body_size, self.tag)
+        
+        elif type == "teen":
+            self.body_size = 130
+            self.tag = "teen"
+            self.features = TestTeenFeatures(self.canvas, self.center_x, self.center_y, self.body_size, self.tag)
+        
+        elif type == "adult":
+            self.body_size = 190
+            self.tag = "adult"
+            self.features = TestAdultFeatures(self.canvas, self.center_x, self.center_y, self.body_size, self.tag)
+
+        else:
+            print("Error, no type was provided")
+        
+
+        # create parts list for the current instance
+        for part in self.features.get_all_feature_ids():
+            #self.add_part(part)
+            self.parts.append(part)
+            self.center_points.append(self._add_center_point(part))
+        
+        # static place holders for Ids of eyes and mouth canvas objects generated in features class 
+        self.eyes_ids = self.features.eyes_ids
+        self.mouth_ids = self.features.mouth_ids
 
         # after creation, start in hidden state 
         self.hide()
+    
+    # pass in the Cookie.draw & Cookie.bite_animation functions to add it to the gotchi canvas 
+    def eat_animation(self):
+        # start gotchi in neutral position and open mouth
+        self._reset_center()
 
-# --- Teen --- #
-class Teen(Gotchi):
-    def __init__(self,canvas,food=None):
-        super().__init__(canvas,food)
-        self.body_size = 150
-        self.tag = "teen"
-
-        # function to store array of objects that make up gotchi's features
-        features = TestTeenFeatures(self.canvas, self.center_x, self.center_y, self.body_size, self.tag)
-        for part in features.get_all_feature_ids():
-            self.add_part(part)
-
-        # start in hidden state
-        self.hide()
-
-# --- Adult --- #
-class Adult(Gotchi):
-    def __init__(self,canvas,food=None):
-        super().__init__(canvas,food)
-        self.body_size = 300
-        self.tag = "adult"
+        if not self.canvas.find_withtag(MOUTH_OPEN):
+            self._draw_open_mouth()
         
-        # function to store array of objects that make up gotchi's features
-        features = TestAdultFeatures(self.canvas, self.center_x, self.center_y, self.body_size, self.tag)
-        for part in features.get_all_feature_ids():
-            self.add_part(part)
+        else:
+            # remove open mouth 
+            self.canvas.delete(MOUTH_OPEN)
 
-        # start in hidden state
-        self.hide()
+           
+        # force additional screen update prior to main loop. Otherwise, function will run and finish without user ever seeing actions displayed on screen
+        self.canvas.update()
+
+        # sleep before bite to give appearance of normal paced biting animation
+        sleep(.5)
+
+    def _draw_open_mouth(self):
+        self.features.mouth.draw_open()
+        self.canvas.itemconfig(MOUTH_OPEN,state="normal")
+
