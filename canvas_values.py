@@ -1,0 +1,18 @@
+# Constants
+CANVAS_WIDTH = 800
+CANVAS_HEIGHT = 800
+
+# Bounding box for the nested canvas (the gotchi's play area)
+GOTCHI_BOX_X = CANVAS_WIDTH / 2
+GOTCHI_BOX_Y = 550
+GOTCHI_BOX_WIDTH = CANVAS_WIDTH * 0.75
+GOTCHI_BOX_HEIGHT = 500
+
+# Food location ratio constants
+BUTTON_1_X_LOCATION = (6/8)
+BUTTON_1_Y_LOCATION = (1/6)
+BUTTON_2_X_LOCATION = (6/8)
+BUTTON_2_Y_LOCATION = (1/5)
+
+FOOD_TO_EAT_X_LOCATION = (1/4)
+FOOD_TO_EAT_Y_LOCATION = (1/4)
